@@ -1,0 +1,16 @@
+{
+  "name": "doodle-community",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx wrangler pages dev public --local",
+    "deploy": "npx wrangler pages deploy public",
+    "db:init": "npx wrangler d1 execute doodle-community-db --file=schema.sql",
+    "db:query": "npx wrangler d1 execute doodle-community-db --command",
+    "kv:create": "npx wrangler kv namespace create KV",
+    "r2:create": "npx wrangler r2 bucket create doodle-community-images"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

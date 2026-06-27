@@ -1,0 +1,51 @@
+// POST /api/community/signin - 签到
+import { getUserFromRequest, json, cors, checkLevelUp } from '../_lib/utils.js';
+
+export async function onRequestOptions() { return cors(); }
+
+export async function onRequestPost({ request, env }) {
+    try {
+        const user = await getUserFromRequest(env, request);
+        if (!user) return json({ error: '请先登录' }, 401);
+
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // 检查今天是否已签到
+        const existing = await env.DB.prepare(
+            'SELECT id FROM signins WHERE user_id = ? AND sign_date = ?'
+        ).bind(user.id, today).first();
+        if (existing) return json({ error: '今天已经签到过了~' }, 400);
+
+        // 计算连续签到天数
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        const lastSignin = await env.DB.prepare(
+            'SELECT consecutive_days FROM signins WHERE user_id = ? ORDER BY sign_date DESC LIMIT 1'
+        ).bind(user.id).first();
+        const consecutiveDays = lastSignin && (await env.DB.prepare(
+            'SELECT sign_date FROM signins WHERE user_id = ? AND sign_date = ?'
+        ).bind(user.id, yesterday).first()) ? lastSignin.consecutive_days + 1 : 1;
+
+        // 随机奖励
+        const exp = Math.floor(Math.random() * 3) + 1;
+        const caps = Math.floor(Math.random() * 3) + 1;
+
+        await env.DB.prepare(
+            'INSERT INTO signins (user_id, sign_date, exp_gained, caps_gained, consecutive_days) VALUES (?, ?, ?, ?, ?)'
+        ).bind(user.id, today, exp, caps, consecutiveDays).run();
+
+        // 更新用户经验瓶盖
+        user.exp += exp;
+        user.caps += caps;
+        checkLevelUp(user);
+        await env.DB.prepare(
+            'UPDATE users SET exp = ?, caps = ?, level = ? WHERE id = ?'
+        ).bind(user.exp, user.caps, user.level, user.id).run();
+
+        return json({
+            exp, caps, consecutiveDays,
+            user: { exp: user.exp, caps: user.caps, level: user.level }
+        });
+    } catch (e) {
+        return json({ error: '服务器错误: ' + e.message }, 500);
+    }
+}
