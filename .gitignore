@@ -3,3 +3,6 @@ node_modules/
 .DS_Store
 *.local
 .wrangler/
+
+# Private admin entry page - keep local only, do not publish to GitHub/Pages
+public/roler24.html

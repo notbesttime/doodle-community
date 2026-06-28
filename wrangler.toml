@@ -1,6 +1,6 @@
-name = "doodle-community"
-compatibility_date = "2024-09-23"
+name = "dcollor"
 pages_build_output_dir = "public"
+compatibility_date = "2024-09-23"
 
 # D1 数据库绑定
 [[d1_databases]]
@@ -11,13 +11,4 @@ database_id = "3b18dcd4-ac92-4582-9319-dc656ad03aec"
 # KV 命名空间绑定（验证码+频率限制）
 [[kv_namespaces]]
 binding = "KV"
-id = "ca4394e962c4473e89192e9c1ec03c8a"
-
-# 环境变量（EmailJS - 邮件验证码）
-[vars]
-EMAILJS_SERVICE_ID = "你的EmailJS_Service_ID"
-EMAILJS_TEMPLATE_ID = "你的EmailJS_Template_ID"
-EMAILJS_PUBLIC_KEY = "你的EmailJS_Public_Key"
-
-# 注意：以上 var 中的敏感信息建议在 Cloudflare 面板的 Pages > Settings > Environment Variables 中设置
-# 不要直接写在代码里提交到 Git
+id = "b84d1ff26f314fdea522c9b59d0c4a6d"
