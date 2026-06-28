@@ -460,6 +460,8 @@ ul { list-style: none; }
     color: var(--color-text-lighter); transition: all var(--transition-fast); z-index: 10;
 }
 .modal-close:hover { background: var(--color-bg-alt); color: var(--color-text); transform: rotate(90deg); }
+.profile-edit-option:hover { border-color: var(--color-purple) !important; background: var(--color-bg-alt) !important; transform: translateY(-1px); }
+.profile-edit-option { transition: all 0.2s ease; }
 .modal h2, .modal h3 { font-family: var(--font-heading); margin-bottom: var(--space-md); }
 
 /* 确认弹窗 */
@@ -919,8 +921,8 @@ ul { list-style: none; }
     .header-inner { padding: 0 var(--space-sm); gap: var(--space-sm); }
     .logo-text { display: none; }
     .nav-left { display: none; }
-    .nav-tab span { display: none; }
-    .nav-tab { padding: 6px; }
+    .nav-tab span { font-size: 10px; }
+    .nav-tab { padding: 4px 6px; gap: 2px; }
     .mobile-menu-btn { display: flex; }
     .main-content { padding: var(--space-md) var(--space-sm); }
     .community-toolbar { flex-direction: column; align-items: stretch; }

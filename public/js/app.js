@@ -92,7 +92,7 @@ const App = {
         if (view === 'following') this.loadFollowingFeed();
         if (view === 'messages') this.loadMessages();
         if (view === 'favorites') this.loadFavorites();
-        if (view === 'profile') { this.loadProfile(); this.loadTasks(); }
+        if (view === 'profile') { this.loadProfile().then(() => this.loadTasks()); }
         if (view === 'follow-list') this.loadFollowList();
         if (view === 'rank-thanks') this.loadRankPage('thanks');
         if (view === 'rank-sponsor') this.loadRankPage('sponsor');
@@ -1094,10 +1094,64 @@ const App = {
         }
     },
     openEditProfile() {
+        const modal = document.getElementById('modal-edit-profile');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    },
+    openEditNickname() {
+        App.closeModal('modal-edit-profile');
         const user = this.state.currentUser;
-        const newNickname = prompt('输入新昵称（首次免费，后续5瓶盖/次）：', user.nickname);
-        if (newNickname && newNickname.trim() && newNickname !== user.nickname) {
-            this.doRename(newNickname.trim());
+        const input = document.getElementById('edit-nickname-input');
+        if (input) input.value = user.nickname;
+        const modal = document.getElementById('modal-edit-nickname');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    },
+    submitNickname() {
+        const input = document.getElementById('edit-nickname-input');
+        const newNickname = input ? input.value.trim() : '';
+        const user = this.state.currentUser;
+        if (!newNickname || newNickname === user.nickname) {
+            this.showToast('昵称未更改', 'info');
+            App.closeModal('modal-edit-nickname');
+            return;
+        }
+        App.closeModal('modal-edit-nickname');
+        this.doRename(newNickname);
+    },
+    openEditSignature() {
+        App.closeModal('modal-edit-profile');
+        const user = this.state.currentUser;
+        const input = document.getElementById('edit-signature-input');
+        if (input) input.value = user.signature || '';
+        const modal = document.getElementById('modal-edit-signature');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    },
+    async submitSignature() {
+        const input = document.getElementById('edit-signature-input');
+        const newSignature = input ? input.value.trim() : '';
+        const user = this.state.currentUser;
+        if (newSignature === (user.signature || '')) {
+            this.showToast('签名未更改', 'info');
+            App.closeModal('modal-edit-signature');
+            return;
+        }
+        App.closeModal('modal-edit-signature');
+        try {
+            const data = await Api.user.updateProfile({ signature: newSignature });
+            this.state.currentUser.signature = newSignature;
+            this.showToast('签名修改成功', 'success');
+            this.renderProfileCard();
+            this.loadProfile();
+        } catch(e) {
+            this.showToast(e.message, 'error');
         }
     },
     async doRename(newNickname) {
