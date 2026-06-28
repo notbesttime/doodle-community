@@ -1,6 +1,6 @@
 // GET /api/posts/:id/comments - 获取评论列表（含点赞状态，软删除评论显示"已删除"）
 // POST /api/posts/:id/comments - 发表评论
-import { getUserFromRequest, json, cors, checkLevelUp, createMessage, checkRateLimit, checkIpBlacklist, filterSensitiveWords, updateDailyCount, updateTaskProgress } from '../../lib/utils.js';
+import { getUserFromRequest, json, cors, checkLevelUp, createMessage, checkRateLimit, checkIpBlacklist, filterSensitiveWords } from '../../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 
@@ -43,7 +43,7 @@ export async function onRequestGet({ params, request, env }) {
 }
 
 // 发评论（支持回复，传 parentId 则为回复评论）
-export async function onRequestPost({ params, request, env }) {
+export async function onRequestPost({ params, request, env, ctx }) {
     try {
         const user = await getUserFromRequest(env, request);
         if (!user) return json({ error: '请先登录' }, 401);
@@ -67,28 +67,40 @@ export async function onRequestPost({ params, request, env }) {
         // 敏感词过滤
         const filteredText = filterSensitiveWords(text.trim());
 
+        const today = new Date().toISOString().slice(0, 10);
+        user.exp += 2;
+        user.caps += 2;
+        const leveledUp = checkLevelUp(user);
+
         const result = await env.DB.prepare(
             'INSERT INTO comments (post_id, user_id, author_name, content, parent_id) VALUES (?, ?, ?, ?, ?)'
         ).bind(postId, user.id, user.nickname, filteredText, parentId || 0).run();
 
-        await env.DB.prepare(
-            'UPDATE posts SET comments_count = comments_count + 1 WHERE id = ?'
-        ).bind(postId).run();
+        // 批量更新：帖子评论数 + 用户经验/瓶盖/等级 + 每日评论计数 + 任务进度
+        await env.DB.batch([
+            env.DB.prepare('UPDATE posts SET comments_count = comments_count + 1 WHERE id = ?').bind(postId),
+            env.DB.prepare('UPDATE users SET exp = ?, caps = ?, level = ? WHERE id = ?').bind(user.exp, user.caps, user.level, user.id),
+            env.DB.prepare(
+                `UPDATE users SET daily_comments = CASE WHEN daily_tasks_date = ? THEN daily_comments + 1 ELSE 1 END,
+                 daily_tasks_date = CASE WHEN daily_tasks_date = ? THEN daily_tasks_date ELSE ? END
+                 WHERE id = ?`
+            ).bind(today, today, today, user.id),
+            env.DB.prepare(
+                `INSERT INTO user_tasks (user_id, task_id, progress, target, task_date) VALUES (?, 'comment3', 1, 3, ?)
+                 ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = progress + 1`
+            ).bind(user.id, today)
+        ]);
 
-        user.exp += 2;
-        user.caps += 2;
-        const leveledUp = checkLevelUp(user);
-        await env.DB.prepare(
-            'UPDATE users SET exp = ?, caps = ?, level = ? WHERE id = ?'
-        ).bind(user.exp, user.caps, user.level, user.id).run();
-
-        // 更新每日评论计数和任务进度
-        const today = new Date().toISOString().slice(0, 10);
-        await updateDailyCount(env, user.id, 'daily_comments', today);
-        await updateTaskProgress(env, user.id, 'comment3', 3, today);
-
+        // 给帖子作者发消息，改为异步不等待
         if (post.user_id !== user.id) {
-            await createMessage(env, post.user_id, 'comment', user.nickname, '评论了你的帖子', postId);
+            const msgWork = async () => {
+                await createMessage(env, post.user_id, 'comment', user.nickname, '评论了你的帖子', postId);
+            };
+            if (ctx && ctx.waitUntil) {
+                ctx.waitUntil(msgWork());
+            } else {
+                await msgWork();
+            }
         }
 
         return json({

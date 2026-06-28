@@ -434,7 +434,17 @@ const App = {
         const submitBtn = document.getElementById('btn-submit-post');
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '发布中...'; }
 
-        try {
+        let timedOut = false;
+        const TIMEOUT_MS = 5000;
+
+        const timeoutPromise = new Promise((resolve) => {
+            setTimeout(() => {
+                timedOut = true;
+                resolve({ __timeout: true });
+            }, TIMEOUT_MS);
+        });
+
+        const doPost = async () => {
             // 先上传图片
             const imageUrls = [];
             for (const file of this.state.selectedImages) {
@@ -444,34 +454,58 @@ const App = {
 
             const videoUrl = document.getElementById('post-video-url').value.trim();
             const data = await Api.posts.create({ title, content, images: imageUrls, videoUrl });
+            return { __success: true, data, title, content };
+        };
 
-            // 更新本地用户数据
-            if (data.user) {
-                this.state.currentUser.exp = data.user.exp;
-                this.state.currentUser.caps = data.user.caps;
-                this.state.currentUser.level = data.user.level;
-                this.renderProfileCard();
-            }
+        try {
+            const result = await Promise.race([doPost(), timeoutPromise]);
 
-            // 清空编辑器
-            document.getElementById('post-title').value = '';
-            document.getElementById('post-content').value = '';
-            if (document.getElementById('post-video-url')) document.getElementById('post-video-url').value = '';
-            this.state.selectedImages = [];
-
-            // 回到社区页 + 绿色提示
-            this.go('community');
-            this.showToast(data.message || '发帖成功~', 'success');
-            await this.loadPosts();
-        } catch(e) {
-            // 可能是超时但帖子已发出，尝试重新加载社区
-            if (e.message && e.message.includes('服务器错误')) {
+            if (result && result.__timeout) {
+                // 5秒超时，回社区页检测帖子是否已发布
                 this.go('community');
+                this.showToast('服务器响应较慢，正在检测帖子是否发布...', 'info');
                 await this.loadPosts();
-                this.showToast('发帖成功~（服务器响应较慢，帖子已发布）', 'success');
-            } else {
-                this.showToast(e.message, 'error');
+
+                // 查找最新帖子是否匹配（假设用户标题+内容相同）
+                const justPosted = this.state.posts.find(p =>
+                    p.title === title && p.content === content && p.userId === this.state.currentUser.id
+                );
+                if (justPosted) {
+                    this.showToast('发帖成功~', 'success');
+                } else {
+                    // 帖子可能还在写入中，再等2秒再查一次
+                    await new Promise(r => setTimeout(r, 2000));
+                    await this.loadPosts();
+                    const found = this.state.posts.find(p =>
+                        p.title === title && p.content === content && p.userId === this.state.currentUser.id
+                    );
+                    this.showToast(found ? '发帖成功~' : '发布可能存在延迟，请稍后刷新查看', found ? 'success' : 'info');
+                }
+                return;
             }
+
+            // 正常成功
+            if (result && result.__success) {
+                const data = result.data;
+                if (data.user) {
+                    this.state.currentUser.exp = data.user.exp;
+                    this.state.currentUser.caps = data.user.caps;
+                    this.state.currentUser.level = data.user.level;
+                    this.renderProfileCard();
+                }
+
+                // 清空编辑器
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-content').value = '';
+                if (document.getElementById('post-video-url')) document.getElementById('post-video-url').value = '';
+                this.state.selectedImages = [];
+
+                this.go('community');
+                this.showToast(data.message || '发帖成功~', 'success');
+                await this.loadPosts();
+            }
+        } catch(e) {
+            this.showToast(e.message, 'error');
         } finally {
             this._posting = false;
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '发布'; }
@@ -1248,42 +1282,10 @@ const App = {
     },
 
     renderEmptyRank(type) {
-        const conditions = {
-            thanks: [
-                { title: '方式一：游戏成就', desc: 'Q80区内玩家通关所有主线剧情且在世界频道发送"一路向北最厉害啦~"' },
-                { title: '方式二：赞助支持', desc: '赞助0.91元（v我0.91）' },
-                { title: '提交方式', desc: '满足以上任意一条，发送相关证明到邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。需发送：游戏昵称、区服、社团截图和你想展示的个性签名。' },
-                { title: '鸣谢标语', desc: '感谢您的付出，并督促我完善社区。' }
-            ],
-            sponsor: [
-                { title: '赞助条件', desc: '赞助超过2.99元。如果您愿意为我们的网站开发维护包括后续更换更优秀的服务器做出贡献，您将会成为我们的衣食父母！' },
-                { title: '提交方式', desc: '将赞助记录发送至邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。需发送：游戏昵称、区服、社团截图和你想展示的个性签名。注意：排行榜按照赞助金额排名。' },
-                { title: '赞助标语', desc: '感谢您成为我们的衣食父母，我们将抽取一部分用于捐款和继续网站的开发与维护，甚至发放福利（包括但不限于抽奖和创作者福利）。' }
-            ],
-            master: [
-                { title: '方式一：区服统考第一名', desc: '在Q80区统考中获得第一名' },
-                { title: '方式二：社区贡献', desc: '为本网站做出较大贡献（包括但不限于大力维护社区安全）' },
-                { title: '提交方式', desc: '满足以上任意一条，发送相关证明到邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。需发送：游戏昵称、区服、社团截图和你想展示的个性签名。' }
-            ]
-        };
-        const items = conditions[type] || [];
         return `
             <div class="rank-empty">
                 <div class="rank-empty-icon">🏆</div>
                 <p class="rank-empty-text">暂无人上榜，快来成为第一人吧~</p>
-            </div>
-            <div class="rank-conditions">
-                <div class="rank-conditions-header">
-                    <h3 class="rank-conditions-title">📜 入榜条件</h3>
-                    <a href="javascript:void(0)" class="sponsor-link" onclick="App.openSponsorQR()">赞助我们！</a>
-                </div>
-                ${items.map((item, i) => `
-                    <div class="rank-condition-item ${item.title.includes('标语') ? 'rank-condition-slogan' : ''}">
-                        <h4>${item.title}</h4>
-                        <p>${item.desc}</p>
-                    </div>
-                `).join('')}
-                <button class="btn-rank-apply" onclick="App.openRankMethod('${type}')">查看详情 & 申请入榜</button>
             </div>
         `;
     },
@@ -1311,8 +1313,10 @@ const App = {
                         <p>满足以上任意一条，发送相关证明到邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。<br>需发送：游戏昵称、区服、社团截图和你想展示的个性签名。</p>
                     </div>
                     <div class="rank-method-item rank-method-slogan">
-                        <h4>鸣谢标语</h4>
                         <p>感谢您的付出，并督促我完善社区。</p>
+                    </div>
+                    <div style="text-align:center;margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px dashed var(--color-border);">
+                        <a href="javascript:void(0)" class="sponsor-link" onclick="App.closeModal('modal-rank-method');App.openSponsorQR()">赞助我们！</a>
                     </div>
                 </div>
             `,
@@ -1331,8 +1335,8 @@ const App = {
                         <h4>赞助标语</h4>
                         <p>感谢您成为我们的衣食父母，我们将抽取一部分用于捐款和继续网站的开发与维护，甚至发放福利（包括但不限于抽奖和创作者福利）。</p>
                     </div>
-                    <div style="text-align:center;margin-top:var(--space-md)">
-                        <a href="javascript:void(0)" class="sponsor-link" onclick="App.openSponsorQR()">赞助我们！</a>
+                    <div style="text-align:center;margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px dashed var(--color-border);">
+                        <a href="javascript:void(0)" class="sponsor-link" onclick="App.closeModal('modal-rank-method');App.openSponsorQR()">赞助我们！</a>
                     </div>
                 </div>
             `,
@@ -1350,6 +1354,9 @@ const App = {
                     <div class="rank-method-item">
                         <h4>提交方式</h4>
                         <p>满足以上任意一条，发送相关证明到邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。<br>需发送：游戏昵称、区服、社团截图和你想展示的个性签名。</p>
+                    </div>
+                    <div style="text-align:center;margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px dashed var(--color-border);">
+                        <a href="javascript:void(0)" class="sponsor-link" onclick="App.closeModal('modal-rank-method');App.openSponsorQR()">赞助我们！</a>
                     </div>
                 </div>
             `,

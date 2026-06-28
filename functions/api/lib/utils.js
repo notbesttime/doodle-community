@@ -462,19 +462,21 @@ export async function tipPost(env, user, postId, amount) {
     }
 
     // 执行投盖
-    await env.DB.prepare('INSERT INTO post_tips (post_id, user_id, amount) VALUES (?, ?, ?)').bind(postId, user.id, amount).run();
-    await env.DB.prepare('UPDATE posts SET tips_count = tips_count + ?, caps = caps + ? WHERE id = ?').bind(amount, amount, postId).run();
-    await env.DB.prepare('UPDATE users SET caps = caps - ? WHERE id = ?').bind(amount, user.id).run();
-
-    // 更新daily计数
-    if (userRow.daily_tasks_date === today) {
-        await env.DB.prepare('UPDATE users SET daily_tips_given = daily_tips_given + ? WHERE id = ?').bind(amount, user.id).run();
-    } else {
-        await env.DB.prepare('UPDATE users SET daily_tips_given = ?, daily_tasks_date = ? WHERE id = ?').bind(amount, today, user.id).run();
-    }
-
-    // 更新投盖任务进度
-    await updateTaskProgress(env, user.id, 'tip3', 3, today);
+    const today = new Date().toISOString().slice(0, 10);
+    await env.DB.batch([
+        env.DB.prepare('INSERT INTO post_tips (post_id, user_id, amount) VALUES (?, ?, ?)').bind(postId, user.id, amount),
+        env.DB.prepare('UPDATE posts SET tips_count = tips_count + ?, caps = caps + ? WHERE id = ?').bind(amount, amount, postId),
+        env.DB.prepare('UPDATE users SET caps = caps - ? WHERE id = ?').bind(amount, user.id),
+        env.DB.prepare(
+            `UPDATE users SET daily_tips_given = CASE WHEN daily_tasks_date = ? THEN daily_tips_given + ? ELSE ? END,
+             daily_tasks_date = CASE WHEN daily_tasks_date = ? THEN daily_tasks_date ELSE ? END
+             WHERE id = ?`
+        ).bind(today, amount, amount, today, today, user.id),
+        env.DB.prepare(
+            `INSERT INTO user_tasks (user_id, task_id, progress, target, task_date) VALUES (?, 'tip3', 1, 3, ?)
+             ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = progress + 1`
+        ).bind(user.id, today)
+    ]);
 
     user.caps -= amount;
     return { success: true, amount, postTipsCount: (post.caps || 0) + amount, userCaps: user.caps };
