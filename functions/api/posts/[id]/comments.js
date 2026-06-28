@@ -57,8 +57,8 @@ export async function onRequestPost({ params, request, env }) {
         if (!text || !text.trim()) return json({ error: '请输入评论内容' }, 400);
         if (text.trim().length > 500) return json({ error: '评论不能超过500字' }, 400);
 
-        if (!await checkRateLimit(env.KV, 'comment:' + user.id, 5, 60, env.DB)) {
-            return json({ error: '评论过于频繁，请稍后再试' }, 429);
+        if (!await checkRateLimit(env.KV, 'comment:' + user.id, 1, 60, env.DB)) {
+            return json({ error: '评论过于频繁，请1分钟后再试' }, 429);
         }
 
         const post = await env.DB.prepare('SELECT id, user_id FROM posts WHERE id = ?').bind(postId).first();

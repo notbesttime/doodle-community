@@ -41,13 +41,16 @@ export async function onRequestPost({ request, env }) {
             'UPDATE users SET exp = ?, caps = ?, level = ? WHERE id = ?'
         ).bind(user.exp, user.caps, user.level, user.id).run();
 
-        // 更新签到任务进度
-        await updateTaskProgress(env, user.id, 'signin', 1, today);
-        // 如果连续签到>=3，更新连续签到任务
+        // 更新签到任务进度（签到奖励已在签到时发放，任务自动标记已领取）
+        await env.DB.prepare(
+            `INSERT INTO user_tasks (user_id, task_id, progress, target, claimed, task_date) VALUES (?, 'signin', 1, 1, 1, ?)
+             ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = 1, claimed = 1`
+        ).bind(user.id, today).run();
+        // 如果连续签到>=3，更新连续签到任务（同样自动标记已领取）
         if (consecutiveDays >= 3) {
             await env.DB.prepare(
-                `INSERT INTO user_tasks (user_id, task_id, progress, target, task_date) VALUES (?, 'signin3', 3, 3, ?)
-                 ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = 3`
+                `INSERT INTO user_tasks (user_id, task_id, progress, target, claimed, task_date) VALUES (?, 'signin3', 3, 3, 1, ?)
+                 ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = 3, claimed = 1`
             ).bind(user.id, today).run();
         }
 

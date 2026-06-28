@@ -613,12 +613,16 @@ const App = {
 
     async submitComment() {
         if (!this.isLoggedIn()) { this.showToast('请先登录', 'info'); this.openAuthModal(); return; }
+        if (this._commenting) return;
         const input = document.getElementById('comment-input');
         const text = input.value.trim();
         if (!text) return;
         const postId = this.state.currentPostDetail.id;
         const parentId = this.state.replyTo || 0;
 
+        this._commenting = true;
+        const btn = document.querySelector('[onclick="App.submitComment()"]');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
         try {
             const data = await Api.post.addComment(postId, text, parentId);
             const list = document.getElementById('comments-list');
@@ -642,6 +646,9 @@ const App = {
             this.showToast(data.message || '评论成功！经验+2 瓶盖+2', 'success');
         } catch(e) {
             this.showToast(e.message, 'error');
+        } finally {
+            this._commenting = false;
+            if (btn) { btn.disabled = false; btn.style.opacity = ''; }
         }
     },
 
