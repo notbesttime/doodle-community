@@ -94,9 +94,13 @@ const App = {
         if (view === 'favorites') this.loadFavorites();
         if (view === 'profile') { this.loadProfile().then(() => this.loadTasks()); }
         if (view === 'follow-list') this.loadFollowList();
-        if (view === 'rank-thanks') this.loadRankPage('thanks');
-        if (view === 'rank-sponsor') this.loadRankPage('sponsor');
-        if (view === 'rank-master') this.loadRankPage('master');
+        if (view === 'rank-thanks' || view === 'rank-sponsor' || view === 'rank-master') {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const rankEl = document.getElementById('view-rank');
+            if (rankEl) rankEl.classList.add('active');
+            const rankType = view.replace('rank-', '');
+            this.loadRankPage(rankType);
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     },
 

@@ -114,7 +114,7 @@ export async function onRequestGet({ request, env }) {
 }
 
 // 发帖
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, ctx }) {
     try {
         const user = await getUserFromRequest(env, request);
         if (!user) return json({ error: '请先登录' }, 401);
@@ -154,17 +154,27 @@ export async function onRequestPost({ request, env }) {
         user.exp += 2;
         user.caps += 3;
         const leveledUp = checkLevelUp(user);
-        await env.DB.prepare(
-            'UPDATE users SET exp = ?, caps = ?, level = ? WHERE id = ?'
-        ).bind(user.exp, user.caps, user.level, user.id).run();
-
-        // 更新每日发帖计数和任务进度
         const today = new Date().toISOString().slice(0, 10);
-        await updateDailyCount(env, user.id, 'daily_posts', today);
-        await updateTaskProgress(env, user.id, 'post2', 2, today);
 
-        // 异步检查帖子总量并清理
-        await checkAndCleanupPosts(env);
+        // 合并 DB 操作为 batch 事务（减少往返延迟）
+        const dailyField = 'daily_posts';
+        await env.DB.batch([
+            env.DB.prepare('UPDATE users SET exp = ?, caps = ?, level = ? WHERE id = ?').bind(user.exp, user.caps, user.level, user.id),
+            env.DB.prepare(
+                `UPDATE users SET ${dailyField} = CASE WHEN daily_tasks_date = ? THEN ${dailyField} + 1 ELSE 1 END,
+                 daily_tasks_date = CASE WHEN daily_tasks_date = ? THEN daily_tasks_date ELSE ? END
+                 WHERE id = ?`
+            ).bind(today, today, today, user.id),
+            env.DB.prepare(
+                `INSERT INTO user_tasks (user_id, task_id, progress, target, task_date) VALUES (?, 'post2', 1, 2, ?)
+                 ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = progress + 1`
+            ).bind(user.id, today),
+        ]);
+
+        // 帖子清理改为异步不等待（不影响发帖响应速度）
+        if (ctx && ctx.waitUntil) {
+            ctx.waitUntil(checkAndCleanupPosts(env));
+        }
 
         return json({
             postId: result.meta.last_row_id,

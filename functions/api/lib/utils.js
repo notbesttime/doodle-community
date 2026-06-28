@@ -352,7 +352,7 @@ export function getDailyTasks() {
         { id: 'comment3', name: '评论3次', desc: '评论3条帖子', target: 3, capsReward: 3, expReward: 6, type: 'daily' },
         { id: 'like3', name: '点赞3次', desc: '点赞3条帖子', target: 3, capsReward: 2, expReward: 5, type: 'daily' },
         { id: 'fav2', name: '收藏2次', desc: '收藏2条帖子', target: 2, capsReward: 2, expReward: 4, type: 'daily' },
-        { id: 'tip3', name: '投盖3次', desc: '给别人投3个瓶盖', target: 3, capsReward: 3, expReward: 5, type: 'daily' },
+        { id: 'tip3', name: '投盖3次', desc: '给别人投3个瓶盖', target: 3, capsReward: 2, expReward: 4, type: 'daily' },
         { id: 'liked3', name: '获赞3次', desc: '帖子收到3个赞', target: 3, capsReward: 2, expReward: 4, type: 'daily' },
         { id: 'signin3', name: '连续签到3天', desc: '连续签到3天不中断', target: 3, capsReward: 3, expReward: 6, type: 'daily' },
         { id: 'profile', name: '完善资料', desc: '填写个人简介', target: 1, capsReward: 2, expReward: 3, type: 'once' }

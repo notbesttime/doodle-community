@@ -46,13 +46,12 @@ export async function onRequestPost({ request, env }) {
             `INSERT INTO user_tasks (user_id, task_id, progress, target, claimed, task_date) VALUES (?, 'signin', 1, 1, 1, ?)
              ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = 1, claimed = 1`
         ).bind(user.id, today).run();
-        // 如果连续签到>=3，更新连续签到任务（同样自动标记已领取）
-        if (consecutiveDays >= 3) {
-            await env.DB.prepare(
-                `INSERT INTO user_tasks (user_id, task_id, progress, target, claimed, task_date) VALUES (?, 'signin3', 3, 3, 1, ?)
-                 ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = 3, claimed = 1`
-            ).bind(user.id, today).run();
-        }
+        // 连续签到任务：进度=连续天数（但不超过target=3）
+        const signin3Progress = Math.min(consecutiveDays, 3);
+        await env.DB.prepare(
+            `INSERT INTO user_tasks (user_id, task_id, progress, target, claimed, task_date) VALUES (?, 'signin3', ?, 3, ?, ?)
+             ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = ?, claimed = ?`
+        ).bind(user.id, signin3Progress, signin3Progress >= 3 ? 1 : 0, today, signin3Progress, signin3Progress >= 3 ? 1 : 0).run();
 
         return json({
             exp, caps, consecutiveDays,

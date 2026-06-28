@@ -1,6 +1,6 @@
 // GET /api/user/profile - 获取个人资料
 // PUT /api/user/profile - 更新签名等
-import { getUserFromRequest, json, cors, getExpToNext, getLevelColor, getUserTasks } from '../lib/utils.js';
+import { getUserFromRequest, json, cors, getExpToNext, getLevelColor, getUserTasks, updateTaskProgress } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 
@@ -56,6 +56,12 @@ export async function onRequestPut({ request, env }) {
 
         params.push(user.id);
         await env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run();
+
+        // 如果更新了签名，更新完善资料任务进度
+        if (signature !== undefined && signature.trim()) {
+            const today = new Date().toISOString().slice(0, 10);
+            await updateTaskProgress(env, user.id, 'profile', 1, today);
+        }
 
         return json({ success: true });
     } catch (e) {
