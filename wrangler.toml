@@ -6,17 +6,12 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "doodle-community-db"
-database_id = "你的D1数据库ID"  # 部署时替换
-
-# R2 存储绑定（图片上传）
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "doodle-community-images"
+database_id = "3b18dcd4-ac92-4582-9319-dc656ad03aec"
 
 # KV 命名空间绑定（验证码+频率限制）
 [[kv_namespaces]]
 binding = "KV"
-id = "你的KV命名空间ID"  # 部署时替换
+id = "ca4394e962c4473e89192e9c1ec03c8a"
 
 # 环境变量（EmailJS - 邮件验证码）
 [vars]

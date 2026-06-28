@@ -1,5 +1,5 @@
 // GET /api/community/signin/status - 检查签到状态
-import { getUserFromRequest, json, cors } from '../_lib/utils.js';
+import { getUserFromRequest, json, cors } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 

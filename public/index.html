@@ -67,6 +67,11 @@
                     <svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M17 21V19C17 17.94 16.58 16.92 15.83 16.17C15.08 15.42 14.06 15 13 15H5C3.94 15 2.92 15.42 2.17 16.17C1.42 16.92 1 17.94 1 19V21M23 21V19C23 17.94 22.58 16.92 21.83 16.17C21.08 15.42 20.06 15 19 15H18M9 7C9 8.06 9.42 9.08 10.17 9.83C10.92 10.58 11.94 11 13 11C14.06 11 15.08 10.58 15.83 9.83C16.58 9.08 17 8.06 17 7C17 5.94 16.58 4.92 15.83 4.17C15.08 3.42 14.06 3 13 3C11.94 3 10.92 3.42 10.17 4.17C9.42 4.92 9 5.94 9 7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span>社区</span>
                 </a>
+                <a class="nav-tab" data-view="following" onclick="App.go('following')">
+                    <svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M16 21V19C16 17.94 15.58 16.92 14.83 16.17C14.08 15.42 13.06 15 12 15H6C4.94 15 3.92 15.42 3.17 16.17C2.42 16.92 2 17.94 2 19V21M22 21V19C22 18.13 21.71 17.29 21.18 16.61C20.65 15.92 19.91 15.42 19.07 15.18M12 11C13.06 11 14.08 10.58 14.83 9.83C15.58 9.08 16 8.06 16 7C16 5.94 15.58 4.92 14.83 4.17C14.08 3.42 13.06 3 12 3C10.94 3 9.92 3.42 9.17 4.17C8.42 4.92 8 5.94 8 7C8 8.06 8.42 9.08 9.17 9.83C9.92 10.58 10.94 11 12 11ZM19 8C19.5 8 20 8.2 20.35 8.57C20.71 8.94 20.91 9.43 20.91 9.95C20.91 10.47 20.71 10.96 20.35 11.33C20 11.7 19.5 11.9 19 11.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>关注</span>
+                    <span class="badge" id="feed-badge" style="display:none">0</span>
+                </a>
                 <a class="nav-tab" data-view="messages" onclick="App.go('messages')">
                     <svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M21 11.5C21.003 12.82 20.696 14.12 20.105 15.3C19.514 16.48 18.655 17.5 17.596 18.28C16.537 19.06 15.307 19.55 14.01 19.71C12.713 19.87 11.385 19.69 10.17 19.19L3 21L4.81 13.83C4.31 12.615 4.13 11.287 4.29 9.99C4.45 8.693 4.94 7.463 5.72 6.404C6.5 5.345 7.52 4.486 8.7 3.895C9.88 3.304 11.18 2.997 12.5 3M19 5C19 5.8 18.7 6.4 18.2 6.9C17.7 7.4 17.1 7.7 16.3 7.7C15.5 7.7 14.9 7.4 14.4 6.9C13.9 6.4 13.6 5.8 13.6 5C13.6 4.2 13.9 3.6 14.4 3.1C14.9 2.6 15.5 2.3 16.3 2.3C17.1 2.3 17.7 2.6 18.2 3.1C18.7 3.6 19 4.2 19 5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span>信息</span>
@@ -105,6 +110,7 @@
             <button class="mobile-nav-btn" onclick="App.openDevNotes()">开发说明</button>
             <hr class="mobile-menu-divider">
             <button class="mobile-nav-btn" onclick="App.go('community')">社区</button>
+            <button class="mobile-nav-btn" onclick="App.go('following')">关注</button>
             <button class="mobile-nav-btn" onclick="App.go('messages')">信息</button>
             <button class="mobile-nav-btn" onclick="App.go('favorites')">收藏</button>
             <button class="mobile-nav-btn" onclick="App.handleAvatarClick()">个人中心</button>
@@ -116,12 +122,16 @@
 
         <!-- ===== 社区视图 ===== -->
         <section class="view active" id="view-community">
-            <!-- 顶部工具栏：签到 + 页面内搜索筛选 -->
+            <!-- 顶部工具栏：签到 + 排序切换 + 页面内搜索筛选 -->
             <div class="community-toolbar">
                 <button class="btn-sign-in" id="btn-sign-in" onclick="App.doSignIn()">
                     <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M9 11L12 14L22 4M21 12V19C21 19.53 20.79 20.04 20.41 20.41C20.04 20.79 19.53 21 19 21H5C4.47 21 3.96 20.79 3.59 20.41C3.21 20.04 3 19.53 3 19V5C3 4.47 3.21 3.96 3.59 3.59C3.96 3.21 4.47 3 5 3H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span>签到</span>
                 </button>
+                <div class="sort-switcher">
+                    <button class="sort-btn active" data-mode="hot" onclick="App.setSortMode('hot')">🔥 热门</button>
+                    <button class="sort-btn" data-mode="latest" onclick="App.setSortMode('latest')">🕐 最新</button>
+                </div>
                 <div class="search-inline">
                     <svg viewBox="0 0 24 24" fill="none" width="18" height="18" class="search-icon"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                     <input type="text" id="search-inline-input" placeholder="搜索帖子标题..." oninput="App.filterPostsInline(this.value)">
@@ -139,25 +149,79 @@
             </div>
         </section>
 
+        <!-- ===== 关注动态视图 ===== -->
+        <section class="view" id="view-following">
+            <div class="compact-page-banner">
+                <p class="eyebrow">Following Feed</p>
+                <h1>关注动态</h1>
+                <p>你关注的人发布的最新帖子</p>
+            </div>
+            <div class="post-list" id="feed-list"></div>
+        </section>
+
+        <!-- ===== 粉丝/关注列表视图 ===== -->
+        <section class="view" id="view-follow-list">
+            <div class="follow-list-page">
+                <button class="post-detail-back" onclick="App.go('profile')">
+                    <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    返回
+                </button>
+                <div id="follow-list-container"></div>
+            </div>
+        </section>
+
+        <!-- ===== 他人主页视图 ===== -->
+        <section class="view" id="view-user-profile">
+            <div class="profile-container" id="user-profile-container"></div>
+        </section>
+
         <!-- ===== 消息视图 ===== -->
         <section class="view" id="view-messages">
             <div class="compact-page-banner">
                 <p class="eyebrow">Inbox</p>
-                <h1>信息</h1>
+                <h1>信息 <span class="msg-total-badge" id="msg-total-badge" style="display:none">0</span></h1>
                 <p>系统通知、评论提醒、点赞收藏、@消息</p>
+            </div>
+            <!-- 分类统计卡片 -->
+            <div class="msg-stats-grid" id="msg-stats-grid">
+                <div class="msg-stat-card" onclick="App.filterMessages('comment')">
+                    <div class="msg-stat-icon">💬</div>
+                    <div class="msg-stat-num" id="msg-stat-comment">0</div>
+                    <div class="msg-stat-label">评论</div>
+                </div>
+                <div class="msg-stat-card" onclick="App.filterMessages('like')">
+                    <div class="msg-stat-icon">❤️</div>
+                    <div class="msg-stat-num" id="msg-stat-like">0</div>
+                    <div class="msg-stat-label">点赞</div>
+                </div>
+                <div class="msg-stat-card" onclick="App.filterMessages('favorite')">
+                    <div class="msg-stat-icon">⭐</div>
+                    <div class="msg-stat-num" id="msg-stat-favorite">0</div>
+                    <div class="msg-stat-label">收藏</div>
+                </div>
+                <div class="msg-stat-card" onclick="App.filterMessages('mention')">
+                    <div class="msg-stat-icon">@</div>
+                    <div class="msg-stat-num" id="msg-stat-mention">0</div>
+                    <div class="msg-stat-label">@我</div>
+                </div>
+                <div class="msg-stat-card" onclick="App.filterMessages('system')">
+                    <div class="msg-stat-icon">🔔</div>
+                    <div class="msg-stat-num" id="msg-stat-system">0</div>
+                    <div class="msg-stat-label">系统</div>
+                </div>
             </div>
             <div class="messages-container">
                 <div class="message-tabs">
                     <button class="msg-tab active" data-type="all" onclick="App.filterMessages('all')">全部</button>
-                    <button class="msg-tab" data-type="comment" onclick="App.filterMessages('comment')">评论</button>
-                    <button class="msg-tab" data-type="like" onclick="App.filterMessages('like')">点赞</button>
-                    <button class="msg-tab" data-type="favorite" onclick="App.filterMessages('favorite')">收藏</button>
-                    <button class="msg-tab" data-type="mention" onclick="App.filterMessages('mention')">@我</button>
-                    <button class="msg-tab" data-type="system" onclick="App.filterMessages('system')">系统</button>
+                    <button class="msg-tab" data-type="comment" onclick="App.filterMessages('comment')">评论 <span class="msg-tab-badge" id="msg-tab-comment" style="display:none">0</span></button>
+                    <button class="msg-tab" data-type="like" onclick="App.filterMessages('like')">点赞 <span class="msg-tab-badge" id="msg-tab-like" style="display:none">0</span></button>
+                    <button class="msg-tab" data-type="favorite" onclick="App.filterMessages('favorite')">收藏 <span class="msg-tab-badge" id="msg-tab-favorite" style="display:none">0</span></button>
+                    <button class="msg-tab" data-type="mention" onclick="App.filterMessages('mention')">@我 <span class="msg-tab-badge" id="msg-tab-mention" style="display:none">0</span></button>
+                    <button class="msg-tab" data-type="system" onclick="App.filterMessages('system')">系统 <span class="msg-tab-badge" id="msg-tab-system" style="display:none">0</span></button>
                 </div>
                 <div class="message-list" id="message-list"></div>
                 <div class="message-settings">
-                    <a href="javascript:void(0)" onclick="App.openMessageSettings()">消息设置</a>
+                    <a href="javascript:void(0)" onclick="App.markAllRead()">全部已读</a>
                 </div>
             </div>
         </section>
@@ -247,7 +311,7 @@
                     </svg>
                 </div>
                 <h2>欢迎来到乱涂彩社区</h2>
-                <p class="auth-subtitle">注册即送随机昵称，下次自动登录</p>
+                <p class="auth-subtitle">该为玩家自建交流社区，本为Q80区服务现全服公开</p>
             </div>
             <div class="auth-tabs">
                 <button class="auth-tab active" data-mode="register" onclick="App.switchAuthMode('register')">注册</button>
@@ -256,7 +320,7 @@
             <div class="auth-form">
                 <div class="form-group">
                     <label>用户名</label>
-                    <input type="text" id="auth-username" placeholder="3-16位字母/数字/下划线" maxlength="16">
+                    <input type="text" id="auth-username" placeholder="10-16位字母/数字/下划线" maxlength="16" minlength="10">
                 </div>
                 <div class="form-group">
                     <label>密码</label>
@@ -266,9 +330,21 @@
                     <label>确认密码</label>
                     <input type="password" id="auth-confirm" placeholder="再次输入密码" minlength="6">
                 </div>
+                <div class="form-group" id="auth-captcha-group">
+                    <label>验证码</label>
+                    <div class="captcha-row">
+                        <span class="captcha-question" id="captcha-question" style="display:none"></span>
+                        <button type="button" class="editor-tool-btn" id="btn-captcha-refresh" onclick="App.refreshCaptcha()" title="刷新验证码">
+                            <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M23 4V10H17M1 20V14H7M3.51 9C4.26 5.57 7.37 3 11 3C15.42 3 18.87 5.94 19.72 10M20.49 15C19.74 18.43 16.63 21 13 21C8.58 21 5.13 18.06 4.28 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    </div>
+                    <input type="text" id="auth-captcha" placeholder="输入答案，如 12" inputmode="numeric">
+                    <input type="hidden" id="captcha-id">
+                </div>
                 <p class="auth-hint" id="auth-hint"></p>
+                <p class="auth-agreement">点击注册即表示同意 <a href="#" onclick="App.showAgreement(); return false;">用户协议</a>，请遵守法律法规，不得发布违规内容</p>
                 <button class="btn-primary btn-auth" id="btn-auth-submit" onclick="App.submitAuth()">注册</button>
-                <p class="auth-note">注册后将自动生成昵称（热心神明+随机字符）<br>下次访问自动登录，无需重复输入</p>
+                <p class="auth-note">注册后将自动生成昵称（热心神明+随机字符）<br>用户名长度10-16位，支持字母/数字/下划线</p>
             </div>
         </div>
     </div>
@@ -318,19 +394,31 @@
             <h2>开发说明</h2>
             <div class="dev-notes-content">
                 <div class="dev-section">
-                    <h3>当前版本 v0.2.0</h3>
-                    <p>社区基础功能已上线，包括：注册登录、发帖评论、签到、点赞收藏、消息通知、排行榜系统。</p>
+                    <h3>当前版本 v1.0.0</h3>
+                    <p>社区正式上线！包含：注册登录、发帖评论、签到、点赞收藏、消息通知、排行榜申请审核系统、举报系统、评论点赞/回复。</p>
                 </div>
                 <div class="dev-section">
-                    <h3>技术架构</h3>
-                    <p>前端：Cloudflare Pages（全球CDN加速）<br>后端：Cloudflare Workers + D1数据库 + R2存储<br>成本：$0/月（全免费额度）</p>
-                </div>
-                <div class="dev-section">
-                    <h3>功能限制说明</h3>
+                    <h3>功能说明</h3>
                     <ul>
-                        <li>图片上传：单张最大2MB，自动压缩为WebP</li>
-                        <li>视频：暂不支持上传，可插入B站/抖音外链</li>
-                        <li>存储总量：10GB（免费额度），够初期使用</li>
+                        <li>✅ 注册/登录/邮箱验证</li>
+                        <li>✅ 发帖/评论/点赞/收藏</li>
+                        <li>✅ 每日签到（经验+瓶盖）</li>
+                        <li>✅ 消息通知系统</li>
+                        <li>✅ 排行榜（申请→管理员审核→上榜）</li>
+                        <li>✅ 改名功能（首次免费，后续5瓶盖）</li>
+                        <li>✅ 帖子编辑/删除/私密</li>
+                        <li>✅ 评论点赞/回复</li>
+                        <li>✅ 举报系统（帖子+评论）</li>
+                        <li>✅ 管理员后台（审核+举报管理+帖子管理）</li>
+                        <li>❌ 图片上传（暂未开放，后续接入）</li>
+                        <li>❌ 视频上传（可插入B站/抖音外链）</li>
+                    </ul>
+                </div>
+                <div class="dev-section">
+                    <h3>大神榜上榜条件</h3>
+                    <ul>
+                        <li>1. 区服统考第一名申请</li>
+                        <li>2. 为本网站做出较大贡献（包括但不限于大力维护社区安全）</li>
                     </ul>
                 </div>
                 <div class="dev-section">
@@ -339,19 +427,81 @@
                         <div class="sponsor-bar">
                             <div class="sponsor-fill" style="width:0%"></div>
                         </div>
-                        <p>当前赞助：¥0 / 目标 ¥50/月（升级Workers付费版）<br>达成后解锁：视频上传、更大存储、更高请求上限</p>
+                        <p>当前赞助：¥0 / 目标 ¥50/月</p>
+                        <p>赞助款项将用于服务器的升级与维护（图片上传功能、更大存储、更高请求上限），以及各种活动的举办。本人还只是大一的学生，有缺陷的地方请多多指正。</p>
                     </div>
                 </div>
                 <div class="dev-section">
-                    <h3>开发计划</h3>
+                    <h3>开发进度</h3>
                     <ul>
                         <li>✅ Phase 1：社区基础功能</li>
-                        <li>✅ Phase 2：后端API + 前端重构</li>
-                        <li>🔄 Phase 3：消息系统+个人主页完善</li>
-                        <li>⬜ Phase 4：排行榜对接后端</li>
-                        <li>⬜ Phase 5：部署优化+安全加固</li>
+                        <li>✅ Phase 2：后端API + 前端对接</li>
+                        <li>✅ Phase 3：消息系统 + 个人主页</li>
+                        <li>✅ Phase 4：排行榜申请审核系统</li>
+                        <li>✅ Phase 5：部署上线</li>
+                        <li>⬜ Phase 6：搞张Visa卡搭服务器，允许帖子传输图片和视频</li>
+                        <li>⬜ Phase 7：制定头像、开放瓶盖商城（兑换称号、头像框、抽奖、实物等奖品）</li>
+                        <li>⬜ Phase 8：瓶盖游戏、任务，为活跃社区成员颁发奖励、奖品（取决于赞助有多少）</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 赞助收款码弹窗 -->
+    <div class="modal-overlay" id="modal-sponsor-qr" style="display:none">
+        <div class="modal" style="max-width:420px;text-align:center;">
+            <button class="modal-close" onclick="App.closeModal('modal-sponsor-qr')">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <h2 style="font-size:20px;margin-bottom:8px;">赞助我们 ❤️</h2>
+            <p style="font-size:13px;color:#888;margin-bottom:20px;">感谢您成为我们的衣食父母！</p>
+            <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+                <div class="qr-code-item" style="text-align:center;">
+                    <img src="assets/sponsor/alipay.jpg" alt="支付宝收款码" style="width:160px;height:160px;border-radius:12px;object-fit:cover;border:1px solid #eee;">
+                    <span style="display:block;font-size:13px;margin-top:8px;color:#666;">支付宝</span>
+                </div>
+                <div class="qr-code-item" style="text-align:center;">
+                    <img src="assets/sponsor/wechat.jpg" alt="微信收款码" style="width:160px;height:160px;border-radius:12px;object-fit:cover;border:1px solid #eee;">
+                    <span style="display:block;font-size:13px;margin-top:8px;color:#666;">微信</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户协议弹窗 -->
+    <div class="modal-overlay" id="modal-agreement" style="display:none">
+        <div class="modal" style="max-width:500px;">
+            <button class="modal-close" onclick="App.closeModal('modal-agreement')">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <h2 style="font-size:20px;margin-bottom:16px;">用户协议</h2>
+            <div style="font-size:13px;line-height:1.8;color:#666;max-height:400px;overflow-y:auto;">
+                <p>欢迎使用超级无敌:乱涂彩社区！本社区是一个由玩家自发建设的游戏交流平台，与游戏官方无关。</p>
+                <br>
+                <p><b>一、用户行为规范</b></p>
+                <p>1. 请遵守中华人民共和国法律法规，不得发布违法违规内容。</p>
+                <p>2. 禁止发布色情、暴力、赌博、毒品等不良信息。</p>
+                <p>3. 禁止人身攻击、辱骂、骚扰其他用户。</p>
+                <p>4. 禁止发布广告、垃圾信息、恶意刷屏。</p>
+                <p>5. 禁止侵犯他人知识产权（盗图、盗文、盗视频等）。</p>
+                <br>
+                <p><b>二、账号管理</b></p>
+                <p>1. 用户对账号产生的所有行为负责。</p>
+                <p>2. 请妥善保管账号密码，因账号被盗导致的问题本站不承担责任。</p>
+                <p>3. 管理员有权对违规账号进行警告、限制功能或封禁处理。</p>
+                <br>
+                <p><b>三、内容版权</b></p>
+                <p>1. 用户在社区发布的原创内容，版权归用户本人所有。</p>
+                <p>2. 用户授权本社区在平台范围内展示其发布的内容。</p>
+                <p>3. 游戏素材版权归游戏官方所有。</p>
+                <br>
+                <p><b>四、免责声明</b></p>
+                <p>1. 原则上不允许用户在本平台进行交易（包括但不限于账号、赌注、倒卖、打广告），且不存在任何形式的管理人员通过社区的方式向用户您收取费用或者转移到其他网站或软件（就算有也是先发通告）如果遇到请及时举报并忽略该消息，如若被骗，本社区不承担任何责任。</p>
+                <p>2. 因不可抗力导致的服务中断，本站不承担责任。</p>
+                <p>3. 如对社区有疑问或建议，请联系管理员。</p>
+                <br>
+                <p style="text-align:center;color:#999;">最后更新：2026年6月27日</p>
             </div>
         </div>
     </div>
@@ -366,12 +516,41 @@
         </div>
     </div>
 
+    <!-- 投盖弹窗 -->
+    <div class="modal-overlay" id="modal-tip" style="display:none">
+        <div class="modal" style="max-width:340px;text-align:center;">
+            <button class="modal-close" onclick="App.closeModal('modal-tip')">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <h2 style="font-size:20px;margin-bottom:8px;">投盖</h2>
+            <p style="font-size:13px;color:#888;margin-bottom:20px;">给帖子 #<span id="tip-modal-post-id"></span> 投盖</p>
+            <p style="font-size:13px;color:#888;margin-bottom:8px;">当前已有 <span id="tip-modal-current">0</span> 个盖</p>
+            <p style="font-size:13px;color:#888;margin-bottom:20px;">今日已投 <span id="tip-modal-daily-used">0</span>/<span id="tip-modal-daily-limit">10</span> 个盖</p>
+            <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">
+                <button class="tip-amount-btn" onclick="App.doTip(1)">
+                    <div class="tip-amount-circle">1</div>
+                    <span>投1盖</span>
+                </button>
+                <button class="tip-amount-btn" onclick="App.doTip(2)">
+                    <div class="tip-amount-circle">2</div>
+                    <span>投2盖</span>
+                </button>
+            </div>
+            <p style="font-size:12px;color:#aaa;">每日最多投10个盖，每帖仅限一次</p>
+        </div>
+    </div>
+
     <!-- Toast 通知 -->
     <div class="toast-container" id="toast-container"></div>
 
+    <!-- 回到顶部按钮 -->
+    <button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M18 15L12 9L6 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
     <!-- ============ 页脚 ============ -->
     <footer class="footer">
-        <p>超级无敌:乱涂彩社区 v0.2.0 | 由 Cloudflare 全免费驱动 | 仅供学习交流</p>
+        <p>超级无敌:乱涂彩社区 v1.0.0 | <a href="#" onclick="App.showAgreement(); return false;" style="color:#3498db;text-decoration:underline;">用户协议</a> | 仅供学习交流</p>
         <p class="footer-sub">本站为玩家自发社区，与游戏官方无关。游戏素材版权归原作者所有。</p>
     </footer>
 

@@ -1,5 +1,5 @@
 // POST /api/auth/forgot-password - 忘记密码（通过邮箱重置）
-import { getCode, deleteCode, hashPassword, json, cors } from '../_lib/utils.js';
+import { getCode, deleteCode, hashPassword, json, cors } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 

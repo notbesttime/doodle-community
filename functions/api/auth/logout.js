@@ -1,5 +1,5 @@
 // POST /api/auth/logout - 退出登录
-import { getUserFromRequest, json, cors } from '../_lib/utils.js';
+import { getUserFromRequest, json, cors } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 

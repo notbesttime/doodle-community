@@ -26,7 +26,12 @@ const Api = {
             }
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || '请求失败');
+        if (!res.ok) {
+            if (res.status === 403 && data.remaining_minutes) {
+                throw new Error(`您的IP已被封禁，剩余${data.remaining_minutes}分钟\n原因：${data.reason || '违规操作'}`);
+            }
+            throw new Error(data.error || '请求失败');
+        }
         return data;
     },
 
@@ -46,10 +51,10 @@ const Api = {
 
     // ===== 认证 =====
     auth: {
-        register(username, password, email) {
+        register(username, password, email, captchaId, captchaAnswer) {
             return Api.request('/auth/register', {
                 method: 'POST',
-                body: JSON.stringify({ username, password, email })
+                body: JSON.stringify({ username, password, email, captchaId, captchaAnswer })
             });
         },
         login(username, password) {
@@ -82,8 +87,8 @@ const Api = {
 
     // ===== 帖子 =====
     posts: {
-        list(page = 1, search = '', type = 'post') {
-            return Api.request(`/posts?page=${page}&limit=20&search=${encodeURIComponent(search)}&type=${type}`);
+        list(page = 1, search = '', type = 'post', sort = 'hot') {
+            return Api.request(`/posts?page=${page}&limit=20&search=${encodeURIComponent(search)}&type=${type}&sort=${sort}`);
         },
         get(id) { return Api.request(`/posts/${id}`); },
         create(data) {
@@ -97,16 +102,41 @@ const Api = {
     // ===== 帖子互动 =====
     post: {
         comments(postId) { return Api.request(`/posts/${postId}/comments`); },
-        addComment(postId, text) {
+        addComment(postId, text, parentId) {
             return Api.request(`/posts/${postId}/comments`, {
                 method: 'POST',
-                body: JSON.stringify({ text })
+                body: JSON.stringify({ text, parentId: parentId || 0 })
             });
         },
         like(postId) { return Api.request(`/posts/${postId}/like`, { method: 'POST' }); },
         unlike(postId) { return Api.request(`/posts/${postId}/like`, { method: 'DELETE' }); },
         favorite(postId) { return Api.request(`/posts/${postId}/favorite`, { method: 'POST' }); },
-        unfavorite(postId) { return Api.request(`/posts/${postId}/favorite`, { method: 'DELETE' }); }
+        unfavorite(postId) { return Api.request(`/posts/${postId}/favorite`, { method: 'DELETE' }); },
+        edit(postId, data) {
+            return Api.request(`/posts/${postId}/edit`, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+        delete(postId) {
+            return Api.request(`/posts/${postId}/delete`, { method: 'POST' });
+        },
+        privacy(postId) {
+            return Api.request(`/posts/${postId}/privacy`, { method: 'POST' });
+        },
+        report(postId, reason) {
+            return Api.request('/reports', {
+                method: 'POST',
+                body: JSON.stringify({ type: 'post', targetId: postId, reason })
+            });
+        },
+        tipStatus(postId) { return Api.request(`/posts/${postId}/tip`); },
+        tip(postId, amount) {
+            return Api.request(`/posts/${postId}/tip`, {
+                method: 'POST',
+                body: JSON.stringify({ amount })
+            });
+        }
     },
 
     // ===== 社区 =====
@@ -130,7 +160,10 @@ const Api = {
                 body: JSON.stringify({ newNickname })
             });
         },
-        favorites() { return Api.request('/user/favorites'); }
+        favorites() { return Api.request('/user/favorites'); },
+        comments() { return Api.request('/user/comments'); },
+        tasks() { return Api.request('/user/tasks'); },
+        claimTask(taskId) { return Api.request(`/user/tasks/${taskId}/claim`, { method: 'POST' }); }
     },
 
     // ===== 消息 =====
@@ -140,6 +173,12 @@ const Api = {
         },
         markRead(id) {
             return Api.request(`/messages/${id}/read`, { method: 'PUT' });
+        },
+        readAll(type = 'all') {
+            return Api.request('/messages/read-all', {
+                method: 'POST',
+                body: JSON.stringify({ type })
+            });
         }
     },
 
@@ -151,6 +190,90 @@ const Api = {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
+        }
+    },
+
+    // ===== 评论操作 =====
+    comment: {
+        like(commentId) { return Api.request(`/comments/${commentId}/like`, { method: 'POST' }); },
+        delete(commentId) { return Api.request(`/comments/${commentId}/delete`, { method: 'POST' }); },
+        report(commentId, reason) {
+            return Api.request('/reports', {
+                method: 'POST',
+                body: JSON.stringify({ type: 'comment', targetId: commentId, reason })
+            });
+        }
+    },
+
+    // ===== 举报 =====
+    report: {
+        cancel(type, targetId) {
+            return Api.request('/reports/cancel', {
+                method: 'POST',
+                body: JSON.stringify({ type, targetId })
+            });
+        }
+    },
+
+    // ===== 管理 =====
+    admin: {
+        rankApplications(status, type) {
+            let url = '/admin/ranks/applications?status=' + (status || 'pending');
+            if (type) url += '&type=' + type;
+            return Api.request(url);
+        },
+        reviewRankApp(data) {
+            return Api.request('/admin/ranks/review', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+        reports(status) {
+            return Api.request('/admin/reports?status=' + (status || 'pending'));
+        },
+        reviewReport(data) {
+            return Api.request('/admin/reports/review', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+        users(search, role) {
+            let url = '/admin/users?limit=200';
+            if (search) url += '&search=' + encodeURIComponent(search);
+            if (role) url += '&role=' + role;
+            return Api.request(url);
+        },
+        resetPassword(userId, password) {
+            return Api.request('/admin/users/' + userId + '/reset-password', {
+                method: 'POST',
+                body: JSON.stringify({ password })
+            });
+        }
+    },
+
+    // ===== 关注系统 =====
+    follow: {
+        toggle(userId) {
+            return Api.request(`/users/${userId}/follow`, { method: 'POST' });
+        },
+        followers(userId, page = 1) {
+            return Api.request(`/users/${userId}/followers?page=${page}&limit=20`);
+        },
+        following(userId, page = 1) {
+            return Api.request(`/users/${userId}/following?page=${page}&limit=20`);
+        },
+        profile(userId) {
+            return Api.request(`/users/${userId}/profile`);
+        }
+    },
+
+    // ===== 关注动态 =====
+    feed: {
+        following(page = 1) {
+            return Api.request(`/feed/following?page=${page}&limit=20`);
+        },
+        unreadCount() {
+            return Api.request('/feed/unread-count');
         }
     }
 };

@@ -1,5 +1,5 @@
 // POST /api/auth/send-code - 发送验证码到邮箱
-import { generateCode, storeCode, sendEmail, json, cors, checkRateLimit } from '../_lib/utils.js';
+import { generateCode, storeCode, sendEmail, json, cors, checkRateLimit } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 

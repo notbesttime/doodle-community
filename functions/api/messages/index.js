@@ -1,6 +1,6 @@
 // GET /api/messages - 消息列表
 // 未读统计也通过此接口的 query 参数获取
-import { getUserFromRequest, json, cors } from '../_lib/utils.js';
+import { getUserFromRequest, json, cors } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 
@@ -58,9 +58,11 @@ function formatTime(isoStr) {
     const now = new Date();
     const created = new Date(isoStr + 'Z');
     const diff = Math.floor((now - created) / 1000);
-    if (diff < 60) return '刚刚';
-    if (diff < 3600) return Math.floor(diff / 60) + '分钟前';
-    if (diff < 86400) return Math.floor(diff / 3600) + '小时前';
-    if (diff < 2592000) return Math.floor(diff / 86400) + '天前';
-    return created.toLocaleDateString('zh-CN');
+    if (diff < 300) return '刚刚';
+    const y = created.getFullYear();
+    const m = created.getMonth() + 1;
+    const d = created.getDate();
+    const h = String(created.getHours()).padStart(2, '0');
+    const min = String(created.getMinutes()).padStart(2, '0');
+    return `${y}年${m}月${d}日 ${h}:${min}`;
 }

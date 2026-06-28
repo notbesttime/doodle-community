@@ -1,5 +1,5 @@
 // PUT /api/messages/:id/read - 标记消息已读
-import { getUserFromRequest, json, cors } from '../../_lib/utils.js';
+import { getUserFromRequest, json, cors } from '../../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 

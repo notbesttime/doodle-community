@@ -1,5 +1,5 @@
 // POST /api/auth/verify-code - 验证验证码
-import { getCode, deleteCode, json, cors } from '../_lib/utils.js';
+import { getCode, deleteCode, json, cors } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 

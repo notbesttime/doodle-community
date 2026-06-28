@@ -1,5 +1,5 @@
 // PUT /api/user/rename - 改名（首次免费，后续5瓶盖）
-import { getUserFromRequest, json, cors } from '../_lib/utils.js';
+import { getUserFromRequest, json, cors } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 

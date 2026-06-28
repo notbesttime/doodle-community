@@ -1,5 +1,5 @@
 // POST /api/community/signin - 签到
-import { getUserFromRequest, json, cors, checkLevelUp } from '../_lib/utils.js';
+import { getUserFromRequest, json, cors, checkLevelUp, updateTaskProgress } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 
@@ -36,14 +36,24 @@ export async function onRequestPost({ request, env }) {
         // 更新用户经验瓶盖
         user.exp += exp;
         user.caps += caps;
-        checkLevelUp(user);
+        const leveledUp = checkLevelUp(user);
         await env.DB.prepare(
             'UPDATE users SET exp = ?, caps = ?, level = ? WHERE id = ?'
         ).bind(user.exp, user.caps, user.level, user.id).run();
 
+        // 更新签到任务进度
+        await updateTaskProgress(env, user.id, 'signin', 1, today);
+        // 如果连续签到>=3，更新连续签到任务
+        if (consecutiveDays >= 3) {
+            await env.DB.prepare(
+                `INSERT INTO user_tasks (user_id, task_id, progress, target, task_date) VALUES (?, 'signin3', 3, 3, ?)
+                 ON CONFLICT(user_id, task_id, task_date) DO UPDATE SET progress = 3`
+            ).bind(user.id, today).run();
+        }
+
         return json({
             exp, caps, consecutiveDays,
-            user: { exp: user.exp, caps: user.caps, level: user.level }
+            user: { exp: user.exp, caps: user.caps, level: user.level, leveledUp }
         });
     } catch (e) {
         return json({ error: '服务器错误: ' + e.message }, 500);

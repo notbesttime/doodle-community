@@ -1,6 +1,6 @@
 // GET /api/user/profile - 获取个人资料
 // PUT /api/user/profile - 更新签名等
-import { getUserFromRequest, json, cors } from '../_lib/utils.js';
+import { getUserFromRequest, json, cors, getExpToNext, getLevelColor, getUserTasks } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 
@@ -14,14 +14,21 @@ export async function onRequestGet({ request, env }) {
             'SELECT COUNT(*) as count FROM posts WHERE user_id = ?'
         ).bind(user.id).first();
 
+        const expToNext = getExpToNext(user.level);
+        const levelColor = getLevelColor(user.level);
+
+        const today = new Date().toISOString().slice(0, 10);
+        const tasks = await getUserTasks(env, user.id, today);
+
         return json({
             id: user.id, uid: user.uid, username: user.username,
             nickname: user.nickname, email: user.email,
             email_verified: user.email_verified, avatar: user.avatar,
             signature: user.signature, level: user.level, exp: user.exp,
+            expToNext, levelColor,
             caps: user.caps, rename_count: user.rename_count,
             followers: user.followers, following: user.following,
-            postCount
+            postCount, tasks
         });
     } catch (e) {
         return json({ error: '服务器错误' }, 500);

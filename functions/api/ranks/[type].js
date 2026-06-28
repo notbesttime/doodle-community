@@ -1,6 +1,6 @@
 // GET /api/ranks/:type - 获取排行榜列表
-// type: thanks / sponsor / master
-import { json, cors } from '../_lib/utils.js';
+// type: thanks(鸣谢榜) / sponsor(赞助榜) / master(大神榜)
+import { json, cors } from '../lib/utils.js';
 
 export async function onRequestOptions() { return cors(); }
 
@@ -18,8 +18,9 @@ export async function onRequestGet({ params, request, env }) {
         let bindParams = [type];
 
         if (search) {
-            query += ' AND (nickname LIKE ? OR game_uid LIKE ?)';
-            bindParams.push(`%${search}%`, `%${search}%`);
+            query += ' AND (nickname LIKE ? OR game_uid LIKE ? OR guild_name LIKE ? OR server LIKE ?)';
+            const kw = `%${search}%`;
+            bindParams.push(kw, kw, kw, kw);
         }
 
         if (type === 'sponsor') {
@@ -37,6 +38,7 @@ export async function onRequestGet({ params, request, env }) {
             gameUid: r.game_uid,
             server: r.server,
             signature: r.signature,
+            guildName: r.guild_name,
             sponsorAmount: r.sponsor_amount
         }));
 
