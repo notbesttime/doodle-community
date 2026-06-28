@@ -462,7 +462,6 @@ export async function tipPost(env, user, postId, amount) {
     }
 
     // 执行投盖
-    const today = new Date().toISOString().slice(0, 10);
     await env.DB.batch([
         env.DB.prepare('INSERT INTO post_tips (post_id, user_id, amount) VALUES (?, ?, ?)').bind(postId, user.id, amount),
         env.DB.prepare('UPDATE posts SET tips_count = tips_count + ?, caps = caps + ? WHERE id = ?').bind(amount, amount, postId),

@@ -777,6 +777,27 @@ ul { list-style: none; }
     transition: transform var(--transition-fast);
 }
 .sponsor-link:hover { transform: scale(1.05); }
+.rank-sponsor-cta {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+}
+.rank-sponsor-cta .sponsor-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border-radius: var(--radius-full);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6C5CE7, #00CEC9, #FD79A8, #FDCB6E);
+    background-size: 300% 300%;
+    -webkit-text-fill-color: white !important;
+    color: white !important;
+    box-shadow: 0 4px 14px rgba(108, 92, 231, 0.35);
+    animation: sponsor-gradient 3s ease infinite;
+}
+.rank-sponsor-cta .sponsor-link:hover { transform: scale(1.05); box-shadow: 0 6px 18px rgba(108, 92, 231, 0.45); }
 @keyframes sponsor-gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }

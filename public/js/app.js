@@ -1296,9 +1296,17 @@ const App = {
     openRankMethod(type) {
         const titles = { thanks: '鸣谢榜', sponsor: '赞助榜', master: '大神榜' };
         const body = document.getElementById('rank-method-body');
+        const sponsorCTA = `
+            <div class="rank-sponsor-cta">
+                <a href="javascript:void(0)" class="sponsor-link" onclick="App.closeModal('modal-rank-method');App.openSponsorQR()">
+                    <span>❤️</span> 赞助我们！
+                </a>
+            </div>
+        `;
         const methods = {
             thanks: `
-                <h3 style="font-family:var(--font-heading);font-size:20px;margin-bottom:var(--space-lg)">${titles.thanks} · 入榜方式</h3>
+                <h3 style="font-family:var(--font-heading);font-size:20px;margin-bottom:var(--space-md);text-align:center">${titles.thanks} · 入榜方式</h3>
+                ${sponsorCTA}
                 <div class="rank-method-content">
                     <div class="rank-method-item">
                         <h4>方式一：游戏成就</h4>
@@ -1312,16 +1320,11 @@ const App = {
                         <h4>提交方式</h4>
                         <p>满足以上任意一条，发送相关证明到邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。<br>需发送：游戏昵称、区服、社团截图和你想展示的个性签名。</p>
                     </div>
-                    <div class="rank-method-item rank-method-slogan">
-                        <p>感谢您的付出，并督促我完善社区。</p>
-                    </div>
-                    <div style="text-align:center;margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px dashed var(--color-border);">
-                        <a href="javascript:void(0)" class="sponsor-link" onclick="App.closeModal('modal-rank-method');App.openSponsorQR()">赞助我们！</a>
-                    </div>
                 </div>
             `,
             sponsor: `
-                <h3 style="font-family:var(--font-heading);font-size:20px;margin-bottom:var(--space-lg)">${titles.sponsor} · 入榜方式</h3>
+                <h3 style="font-family:var(--font-heading);font-size:20px;margin-bottom:var(--space-md);text-align:center">${titles.sponsor} · 入榜方式</h3>
+                ${sponsorCTA}
                 <div class="rank-method-content">
                     <div class="rank-method-item">
                         <h4>赞助条件</h4>
@@ -1331,17 +1334,14 @@ const App = {
                         <h4>提交方式</h4>
                         <p>将赞助记录发送至邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。<br>需发送：游戏昵称、区服、社团截图和你想展示的个性签名。<br>注意：排行榜按照赞助金额排名。</p>
                     </div>
-                    <div class="rank-method-item rank-method-slogan">
-                        <h4>赞助标语</h4>
+                    <div class="rank-method-item">
                         <p>感谢您成为我们的衣食父母，我们将抽取一部分用于捐款和继续网站的开发与维护，甚至发放福利（包括但不限于抽奖和创作者福利）。</p>
-                    </div>
-                    <div style="text-align:center;margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px dashed var(--color-border);">
-                        <a href="javascript:void(0)" class="sponsor-link" onclick="App.closeModal('modal-rank-method');App.openSponsorQR()">赞助我们！</a>
                     </div>
                 </div>
             `,
             master: `
-                <h3 style="font-family:var(--font-heading);font-size:20px;margin-bottom:var(--space-lg)">${titles.master} · 入榜方式</h3>
+                <h3 style="font-family:var(--font-heading);font-size:20px;margin-bottom:var(--space-md);text-align:center">${titles.master} · 入榜方式</h3>
+                ${sponsorCTA}
                 <div class="rank-method-content">
                     <div class="rank-method-item">
                         <h4>方式一：区服统考第一名</h4>
@@ -1354,9 +1354,6 @@ const App = {
                     <div class="rank-method-item">
                         <h4>提交方式</h4>
                         <p>满足以上任意一条，发送相关证明到邮箱 xingguang2482@outlook.com 或QQ群453862830中，我们将在1-3个工作日内审核通过。<br>需发送：游戏昵称、区服、社团截图和你想展示的个性签名。</p>
-                    </div>
-                    <div style="text-align:center;margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px dashed var(--color-border);">
-                        <a href="javascript:void(0)" class="sponsor-link" onclick="App.closeModal('modal-rank-method');App.openSponsorQR()">赞助我们！</a>
                     </div>
                 </div>
             `,
