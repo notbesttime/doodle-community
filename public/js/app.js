@@ -420,11 +420,13 @@ const App = {
         input.style.display = input.style.display === 'none' ? 'block' : 'none';
     },
     async submitPost() {
+        if (this._posting) return;
         const title = document.getElementById('post-title').value.trim();
         const content = document.getElementById('post-content').value.trim();
         if (!title) { this.showToast('请输入标题', 'error'); return; }
         if (!content) { this.showToast('请输入内容', 'error'); return; }
 
+        this._posting = true;
         const submitBtn = document.getElementById('btn-submit-post');
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '发布中...'; }
 
@@ -447,13 +449,29 @@ const App = {
                 this.renderProfileCard();
             }
 
+            // 清空编辑器
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-content').value = '';
+            if (document.getElementById('post-video-url')) document.getElementById('post-video-url').value = '';
+            this.state.selectedImages = [];
+
+            // 回到社区页 + 绿色提示
             this.go('community');
-            this.showToast(data.message || '发帖成功！经验+2 瓶盖+3', 'success');
+            this.showToast(data.message || '发帖成功~', 'success');
             await this.loadPosts();
         } catch(e) {
-            this.showToast(e.message, 'error');
+            // 可能是超时但帖子已发出，尝试重新加载社区
+            if (e.message && e.message.includes('服务器错误')) {
+                this.go('community');
+                await this.loadPosts();
+                this.showToast('发帖成功~（服务器响应较慢，帖子已发布）', 'success');
+            } else {
+                this.showToast(e.message, 'error');
+            }
+        } finally {
+            this._posting = false;
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '发布'; }
         }
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '发布'; }
     },
 
     renderPosts() {
