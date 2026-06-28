@@ -22,14 +22,11 @@ export async function onRequestGet({ request, env }) {
         const user = await getUserFromRequest(env, request);
         const userId = user ? user.id : 0;
 
-        // 排序：hot=热度算法, latest=纯时间倒序
-        const orderClause = sort === 'latest'
-            ? 'ORDER BY created_at DESC'
-            : `ORDER BY (likes_count * 3 + comments_count * 2 + favorites_count * 4) / POWER((julianday('now') - julianday(created_at)) * 24 + 2, 1.8) DESC, created_at DESC`;
-
         // 过滤：未删除(is_deleted=0) 且 (非私密 或 自己是楼主 或 管理员)
         let query, params;
         const baseFilter = '(is_deleted = 0) AND (is_private = 0 OR user_id = ?)';
+        // D1 不支持 POWER()，热度排序改为 JS 计算；先按时间倒序查出，再在 JS 里排序
+        const orderClause = 'ORDER BY created_at DESC';
 
         if (search) {
             if (type === 'post') {
@@ -45,6 +42,18 @@ export async function onRequestGet({ request, env }) {
         }
 
         const { results } = await env.DB.prepare(query).bind(...params).all();
+
+        // 热度排序在 JS 中完成（D1 不支持 POWER 函数）
+        if (sort === 'hot' && results.length > 0) {
+            const now = Date.now();
+            results.forEach(p => {
+                const ageHours = (now - new Date(p.created_at).getTime()) / (1000 * 60 * 60) + 2;
+                const score = (p.likes_count * 3 + p.comments_count * 2 + p.favorites_count * 4) / Math.pow(ageHours, 1.8);
+                p._hotScore = score;
+            });
+            results.sort((a, b) => b._hotScore - a._hotScore || new Date(b.created_at) - new Date(a.created_at));
+            results.forEach(p => delete p._hotScore);
+        }
 
         let likedSet = new Set(), favSet = new Set(), followingSet = new Set(), tipSet = new Set();
         if (user && results.length > 0) {
